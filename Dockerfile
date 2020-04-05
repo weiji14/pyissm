@@ -72,10 +72,12 @@ RUN conda install \
     netcdf4 \
     nose \
     numpy \
+    pandas \
     petsc \
     python=3.8 \
     scipy \
     triangle \
+    xarray \
     && conda clean --all --yes
 
 # Install dependencies shipped with ISSM
