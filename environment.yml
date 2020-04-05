@@ -1,0 +1,22 @@
+name: pyissm
+channels:
+  - conda-forge
+dependencies:
+  - automake
+  - blas=*=*mkl
+  - cmake
+  - fortran-compiler
+  - jupyterlab
+  - lapack
+  - libtool
+  - matplotlib
+  - mpich-mpicxx
+  - netcdf4
+  - nose
+  - numpy
+  - pandas
+  - petsc
+  - python=3.8
+  - scipy
+  - triangle
+  - xarray

@@ -58,27 +58,11 @@ RUN echo 'anon' | git svn clone --username anon -r 24686 https://issm.ess.uci.ed
 SHELL ["/bin/bash", "-ic"]
 RUN conda init --verbose
 
-# Install various conda dependencies
-RUN conda install \
-    automake \
-    blas=*=*mkl \
-    cmake \
-    fortran-compiler \
-    jupyterlab \
-    lapack \
-    libtool \
-    matplotlib \
-    mpich-mpicxx \
-    netcdf4 \
-    nose \
-    numpy \
-    pandas \
-    petsc \
-    python=3.8 \
-    scipy \
-    triangle \
-    xarray \
-    && conda clean --all --yes
+# Install dependencies in environment.yml file using conda
+COPY environment.yml ${HOME}
+RUN conda env update -n base -f environment.yml && \
+    conda clean --all --yes && \
+    conda list -n base
 
 # Install dependencies shipped with ISSM
 ENV ISSM_DIR ${HOME}/trunk
