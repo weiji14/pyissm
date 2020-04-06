@@ -3,9 +3,10 @@ channels:
   - conda-forge
 dependencies:
   - automake
-  - blas=*=*mkl
+  - blas
   - cmake
   - fortran-compiler
+  - gmt
   - jupyterlab
   - lapack
   - libtool
@@ -16,7 +17,10 @@ dependencies:
   - numpy
   - pandas
   - petsc
+  - pip
   - python=3.8
   - scipy
   - triangle
   - xarray
+  - pip:
+    - "--editable=git+https://github.com/GenericMappingTools/pygmt.git@392c910fdf49e7112fa4032765db2b1e87f2a24f#egg=pygmt"
