@@ -9,6 +9,77 @@ Launch in [Pangeo Binder](https://pangeo-binder.readthedocs.io) (Interactive jup
 
 [![Binder](https://binder.pangeo.io/badge_logo.svg)](https://binder.pangeo.io/v2/gh/weiji14/pyissm/master)
 
+## Installation
+
+Start by cloning this [repo-url](/../../)
+
+    git clone <repo-url>
+
+Then I recommend [using conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) to install the dependencies.
+
+    cd pyissm
+    conda env create -f environment.yml
+
+Activate the conda environment first.
+
+    conda activate pyissm
+
+Then clone the ISSM svn trunk repository.
+You will need to have [git-svn](https://git-scm.com/docs/git-svn) installed.
+
+    echo 'anon' | git svn clone --username anon -r 24686 https://issm.ess.uci.edu/svn/issm/issm/trunk
+
+After that, you will need to compile some of the dependencies shipped with ISSM.
+
+    export ISSM_DIR=/path/to/pyissm/trunk
+    source $ISSM_DIR/etc/environment.sh && cd $ISSM_DIR/externalpackages/m1qn3 && ./install.sh
+    source $ISSM_DIR/etc/environment.sh && cd $ISSM_DIR/externalpackages/triangle && ./install-linux.sh
+
+Setup some environment variables and configuration settings, and patch the configure file to remove the 'm' for minimal.
+
+    export CONDA_DIR=/path/to/.conda/envs/pyissm
+    cd $ISSM_DIR && source $ISSM_DIR/etc/environment.sh && autoreconf -ivf
+    cd $ISSM_DIR && \
+        ./configure \
+        --prefix="$ISSM_DIR" \
+        --disable-static \
+        --enable-development \
+        --with-numthreads=8 \
+        --with-python-version=3.8 \
+        --with-python-dir="$CONDA_DIR" \
+        --with-python-numpy-dir="$CONDA_DIR/lib/python3.8/site-packages/numpy/core/include/numpy" \
+        --with-fortran-lib="-L$CONDA_DIR/lib/gcc/x86_64-conda_cos6-linux-gnu/7.3.0 -lgfortran" \
+        --with-mpi-include="$CONDA_DIR/lib/include" \
+        --with-mpi-libflags="-L$CONDA_DIR/lib -lmpi -lmpicxx -lmpifort" \
+        --with-metis-dir="$CONDA_DIR/lib" \
+        --with-scalapack-dir="$CONDA_DIR/lib" \
+        --with-mumps-dir="$CONDA_DIR/lib" \
+        --with-petsc-dir="$CONDA_DIR" \
+        --with-triangle-dir="$ISSM_DIR/externalpackages/triangle/install" \
+        --with-m1qn3-dir="$ISSM_DIR/externalpackages/m1qn3/install"
+    sed -i 's/-lpython${PYTHON_VERSION}m/-lpython${PYTHON_VERSION}/g' $ISSM_DIR/configure
+
+Finally compile ISSM for Python.
+
+    cd $ISSM_DIR
+    make --jobs=8
+    make install
+
+You'll need to export some more environment variables for things to work.
+Plus add a line into your .bashrc file to apply the settings each time you restart.
+
+    export PYTHONPATH=$ISSM_DIR/bin:$PYTHONPATH
+    export PYTHONPATH=$ISSM_DIR/lib:$PYTHONPATH
+    echo "source $ISSM_DIR/etc/environment.sh" >> $HOME/.bashrc
+
+## Running jupyter lab
+
+    conda activate pyissm
+    python -m ipykernel install --user --name pyissm  # to install conda env properly
+    jupyter kernelspec list --json                    # see if kernel is installed
+    jupyter lab &
+
+
 ## TODO
 
 - [x] Use newer dataset inputs (e.g. BedMachine, ALBMAPv1, MEaSUREs Phase Map of Antarctic Ice Velocity)
