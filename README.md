@@ -83,14 +83,14 @@ Plus add a line into your .bashrc file to apply the settings each time you resta
 ## TODO
 
 - [x] Use newer dataset inputs (e.g. BedMachine, ALBMAPv1, MEaSUREs Phase Map of Antarctic Ice Velocity)
-- [ ] Go from Python 2.7 to Python 3
+- [x] Go from Python 2.7 to Python 3
 - [x] Get reproducible [binder](https://mybinder.readthedocs.io) build to work (using Dockerfile)
 - [ ] Jupyter notebooks, [PyGMT](https://pygmt.org) plots, and so on!
 
 ## Notes
 
-- ISSM currently installed by sysadmin in /opt/issm, activated by running `need issmpy`
-- Pine Island Tutorial located in /opt/issm/trunk/examples/Pig, copied to /home/user/pyissm/Pig
+- ISSM installed in $ISSM_DIR which is /home/user/pyissm/trunk, activated by running `source $ISSM_DIR/etc/environment.sh`
+- Pine Island Tutorial located in $ISSM_DIR/examples/Pig, and can be copied to /home/user/pyissm/Pig
 - Datasets found under /home/user/pyissm/Data
 
 ## References

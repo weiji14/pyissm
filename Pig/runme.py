@@ -41,8 +41,6 @@ from cuffey import cuffey
 # %%
 step = 7
 
-assert os.path.basename(os.getcwd()) == "issm"
-
 # Mesh Generation #1
 if step == 1:
     # md = model()
@@ -260,69 +258,6 @@ if step == 7:
     # procdata = ho_minus_obs_vel
     # datasize = (np.shape(procdata)[0], 1)
     # datasize[1] > 1 and datasize[0] != md.mesh.numberofvertices + 1
-
-    # https://fabrizioguerrieri.com/blog/2017/9/7/surface-graphs-with-irregular-dataset
-    import matplotlib
-
-    triang = matplotlib.tri.Triangulation(x=mdHO.mesh.x, y=mdHO.mesh.y)
-    z = mdHO.initialization.vel
-
-    np.testing.assert_equal(mdHO.mesh.x, mdSSA.mesh.x)
-
-    if 1 == 1:
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-
-        ax.triplot(
-            triang,
-            c="#D3D3D3",
-            marker=".",
-            markerfacecolor="#DC143C",
-            markeredgecolor="black",
-            markersize=10,
-        )
-
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        plt.show()
-        # plt.show()
-
-    if 2 == 2:
-        fig = plt.figure(figsize=(10, 12))
-        ax = fig.add_subplot(1, 1, 1, projection="3d")
-
-        ax.plot_trisurf(triang, z, cmap="jet")
-        # ax.scatter(x,y,z, marker='.', s=10, c="black", alpha=0.5)
-        ax.view_init(elev=60, azim=270)
-
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-        plt.show()
-    mdHO.mesh.vertexonbase
-    mdHO.friction
-    mdHO.mesh
-
-    import pandas as pd
-
-    df = pd.DataFrame(
-        data={
-            "x": mdHO.mesh.x,
-            "y": mdHO.mesh.y,
-            "z": mdHO.mesh.z,
-            "mdHOvel": mdHO.initialization.vel,
-            "mdHOfriction": mdHO.friction.coefficient.squeeze(),
-            "isbasal": mdHO.mesh.vertexonbase,
-            "issurface": mdHO.mesh.vertexonsurface,
-        },
-        columns=["x", "y", "z", "mdHOfriction", "mdHOvel", "isbasal", "issurface"],
-    )
-    df.to_csv("Pig/Results/mdHO_xyz_vel_friction.csv", index=False, sep=" ")
-    region = "/".join(
-        [str(c) for c in (df.x.min(), df.x.max(), df.y.min(), df.y.max())]
-    )
-
-    #!gmt pscontour Pig/Results/xy_mdHOvel.csv -Wthin -Cjet -I -Jx1:15000 -R{region} > Pig/Results/mdHOvel.ps
 
     plotmodel(
         mdHO,
