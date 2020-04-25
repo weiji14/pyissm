@@ -35,7 +35,7 @@ After that, you will need to compile some of the dependencies shipped with ISSM.
     source $ISSM_DIR/etc/environment.sh && cd $ISSM_DIR/externalpackages/m1qn3 && ./install.sh
     source $ISSM_DIR/etc/environment.sh && cd $ISSM_DIR/externalpackages/triangle && ./install-linux.sh
 
-Setup some environment variables and configuration settings, and patch the configure file to remove the 'm' for minimal.
+Setup some environment variables and configuration settings, and patch the configure file to remove the 'm' for minimal (Python 3.8 and above only).
 
     export CONDA_DIR=/path/to/.conda/envs/pyissm
     cd $ISSM_DIR && source $ISSM_DIR/etc/environment.sh && autoreconf -ivf
@@ -57,7 +57,7 @@ Setup some environment variables and configuration settings, and patch the confi
         --with-petsc-dir="$CONDA_DIR" \
         --with-triangle-dir="$ISSM_DIR/externalpackages/triangle/install" \
         --with-m1qn3-dir="$ISSM_DIR/externalpackages/m1qn3/install"
-    sed -i 's/-lpython${PYTHON_VERSION}m/-lpython${PYTHON_VERSION}/g' $ISSM_DIR/configure
+    # sed -i 's/-lpython${PYTHON_VERSION}m/-lpython${PYTHON_VERSION}/g' $ISSM_DIR/configure
 
 Finally compile ISSM for Python.
 

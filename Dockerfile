@@ -103,8 +103,8 @@ RUN cd $ISSM_DIR && \
     --with-triangle-dir="$ISSM_DIR/externalpackages/triangle/install" \
     --with-m1qn3-dir="$ISSM_DIR/externalpackages/m1qn3/install"
 
-# Patch configure file to remove the 'm' for minimal
-RUN sed -i 's/-lpython${PYTHON_VERSION}m/-lpython${PYTHON_VERSION}/g' $ISSM_DIR/configure
+# Patch configure file to remove the 'm' for minimal (Python 3.8 and above only)
+# RUN sed -i 's/-lpython${PYTHON_VERSION}m/-lpython${PYTHON_VERSION}/g' $ISSM_DIR/configure
 
 # Compile ISSM
 RUN cd $ISSM_DIR && \
