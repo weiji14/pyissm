@@ -24,6 +24,7 @@ import xarray as xr
 
 from model import model
 from bamg import bamg
+from export_netCDF import export_netCDF
 from loadmodel import loadmodel
 from plotmodel import plotmodel
 from InterpFromGridToMesh import InterpFromGridToMesh
@@ -91,11 +92,12 @@ md = bamg(
 plotmodel(md, "data", "mesh")
 
 # Save model
-# savevars("Models/pig_mesh_generation", {"md": md})
+export_netCDF(md=md, filename="Models/pig_mesh_generation.nc")
 
 # %%
 # Step 2 - Masks
-# md = loadmodel(path="Models/pig_mesh_generation.dat")
+md = loadmodel(path="Models/pig_mesh_generation.nc")
+
 # Load ALBMAP dataset
 # https://doi.pangaea.de/10.1594/PANGAEA.734145
 with xr.open_dataset(filename_or_obj="Data/ALBMAPv1.nc") as albmap:
@@ -127,19 +129,21 @@ plotmodel(
 )
 
 # Save model
-# savevars("Models/pig_setmask.dat", {"md": md})
+export_netCDF(md=md, filename="Models/pig_setmask.nc")
 
 # %%
 # Step 3 - Parameterization
-# md = loadmodel(path="Models/pig_setmask.dat")
+md = loadmodel(path="Models/pig_setmask.nc")
 md = parameterize(md=md, parametername="Pig/Pig_py.par")
 
 # Save model
-# savevars("Models/pig_parameterization.dat", {"md": md})
+export_netCDF(md=md, filename="Models/pig_parameterization.nc")
 
 # %%
 # Step 4 - Control Method inverting for basal friction
-# md = loadmodel(path="Models/pig_parameterization.dat")
+md = loadmodel(path="Models/pig_parameterization.nc")
+md.miscellaneous.name = "pig_control_drag_fullstokes"  # give model a name!
+
 # Extrude Mesh
 md = model.extrude(md, 9, 3)  # 9 layers, with extrusion exponent of 3
 assert md.mesh.numberoflayers == 9
@@ -191,14 +195,14 @@ plotmodel(md, "data", md.friction.coefficient, "data", md.materials.rheology_B)
 # Save model
 # savevars("Models/pig_control_drag.dat", {"md": md})
 # savevars("Models/pig_control_drag_higherorder.dat", {"md": md})
-# savevars("Models/pig_control_drag_fullstokes.dat", {"md": md})
+export_netCDF(md=md, filename=f"Models/{md.miscellaneous.name}.nc")
 
 # %%
 # Step 5 - Export mesh
 import exportVTK as exportVTK  # TODO export to vtk format!
 
 # mdFS = loadmodel("Models/pig_control_drag_fullstokes.dat")
-mdFS = md
+mdFS = loadmodel(path="Models/pig_control_drag_fullstokes.nc")
 
 df = pd.DataFrame(
     data={
