@@ -6,7 +6,7 @@ dependencies:
   - blas
   - cmake
   - fortran-compiler
-  - gmt
+  - gmt=6.0.0
   - jupyterlab
   - lapack
   - libtool
@@ -23,4 +23,4 @@ dependencies:
   - triangle
   - xarray
   - pip:
-    - "--editable=git+https://github.com/GenericMappingTools/pygmt.git@392c910fdf49e7112fa4032765db2b1e87f2a24f#egg=pygmt"
+    - pygmt==0.1.0
