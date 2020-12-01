@@ -51,8 +51,9 @@ RUN apt -qq update && apt install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 USER $NB_UID
 
-# Use git svn to clone the ISSM svn trunk repository from revision 24686 (02 Apr 2020)
-RUN echo 'anon' | git svn clone --username anon -r 24686 https://issm.ess.uci.edu/svn/issm/issm/trunk
+# Use git svn to clone the ISSM svn trunk repository from revision 25791 (01 Dec 2020)
+# Get latest revision number and date by running `svn info https://issm.ess.uci.edu/svn/issm`
+RUN echo 'anon' | git svn clone --username anon -r 25791 https://issm.ess.uci.edu/svn/issm/issm/trunk
 
 # Change to interactive bash shell, so that `conda activate` works
 SHELL ["/bin/bash", "-ic"]

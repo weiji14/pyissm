@@ -1,6 +1,6 @@
 # PyISSM
 
-Experimental code on running the [Ice Sheet System Model (ISSM)](https://issm.jpl.nasa.gov) via Python instead of the default Matlab interface.
+Experimental code on running the [Ice-sheet and Sea-level System Model (ISSM)](https://issm.jpl.nasa.gov) via Python instead of the default Matlab interface.
 Focusing on Pine Island Glacier (based on this [tutorial](https://issm.jpl.nasa.gov/documentation/tutorials/pig/)).
 
 ## Quickstart
@@ -27,7 +27,7 @@ Activate the conda environment first.
 Then clone the ISSM svn trunk repository.
 You will need to have [git-svn](https://git-scm.com/docs/git-svn) installed.
 
-    echo 'anon' | git svn clone --username anon -r 24686 https://issm.ess.uci.edu/svn/issm/issm/trunk
+    echo 'anon' | git svn clone --username anon -r 25791 https://issm.ess.uci.edu/svn/issm/issm/trunk
 
 After that, you will need to compile some of the dependencies shipped with ISSM.
 
