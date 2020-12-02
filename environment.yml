@@ -16,7 +16,7 @@ dependencies:
   - nose
   - numpy
   - pandas
-  - petsc
+  - petsc=3.12
   - pip
   - pygmt=0.2.1
   - python=3.7
