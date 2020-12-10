@@ -18,11 +18,11 @@ RUN adduser --disabled-password \
 # Setup conda
 ENV CONDA_DIR ${HOME}/.conda
 ENV NB_PYTHON_PREFIX ${CONDA_DIR}
-ENV MINICONDA_VERSION 4.8.2
+ENV MINICONDA_VERSION 4.9.2
 
 RUN cd /tmp && \
     wget --quiet https://repo.continuum.io/miniconda/Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh && \
-    echo "cbda751e713b5a95f187ae70b509403f *Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
+    echo "122c8c9beb51e124ab32a0fa6426c656 *Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh" | md5sum -c - && \
     /bin/bash Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh -f -b -p $CONDA_DIR && \
     rm Miniconda3-py38_${MINICONDA_VERSION}-Linux-x86_64.sh && \
     $CONDA_DIR/bin/conda config --system --prepend channels conda-forge && \
@@ -51,9 +51,9 @@ RUN apt -qq update && apt install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 USER $NB_UID
 
-# Use git svn to clone the ISSM svn trunk repository from revision 25791 (01 Dec 2020)
+# Use git svn to clone the ISSM svn trunk repository from revision 25847 (09 Dec 2020)
 # Get latest revision number and date by running `svn info https://issm.ess.uci.edu/svn/issm`
-RUN echo 'anon' | git svn clone --username anon -r 25791 https://issm.ess.uci.edu/svn/issm/issm/trunk
+RUN echo 'anon' | git svn clone --username anon -r 25847 https://issm.ess.uci.edu/svn/issm/issm/trunk
 
 # Change to interactive bash shell, so that `conda activate` works
 SHELL ["/bin/bash", "-ic"]
