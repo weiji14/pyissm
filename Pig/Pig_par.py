@@ -8,7 +8,7 @@ from SetMarineIceSheetBC import SetMarineIceSheetBC
 
 
 # Parameters to change/Try
-friction_coefficient = 10  # default [10]
+friction_coefficient = 100  # default [10]
 Temp_change = 0  # default [0 K]
 
 # Name and Coordinate system
@@ -18,16 +18,16 @@ md.mesh.epsg = 3031
 # NetCdf Loading
 print("   Loading DeepBedMap, BedMachine and ALBMAP data from NetCDF")
 
-#with xr.open_dataset("Data/deepbedmap3_big_int16.nc") as ncdata0:
+# with xr.open_dataset("Data/deepbedmap3_big_int16.nc") as ncdata0:
 #    x0 = ncdata0.x.data
 #    y0 = ncdata0.y.data
 #    bed = ncdata0.z.data.astype(np.float64)
 
-with xr.open_dataset("Data/BedMachineAntarctica_2019-11-05_v01.nc") as ncdata1:
+with xr.open_dataset("Data/BedMachineAntarctica_2020-07-15_v02.nc") as ncdata1:
     x1 = ncdata1.x.data.astype(np.int64)
     y1 = np.flipud(ncdata1.y.data).astype(np.int64)
     usrf = np.flipud(ncdata1.surface.data)
-    #topg = np.flipud(ncdata1.bed.data)
+    # topg = np.flipud(ncdata1.bed.data)
 
 with xr.open_dataset("Data/ALBMAPv1.nc") as ncdata2:
     x2 = ncdata2.x1.data.astype(np.float64)
@@ -41,9 +41,9 @@ print("   Interpolating surface and ice base")
 # md.geometry.base = InterpFromGridToMesh(
 #     x1, y1, topg, md.mesh.x, md.mesh.y, 0
 # )[0]  # BedMachine
-#md.geometry.base = InterpFromGridToMesh(x0, y0, bed, md.mesh.x, md.mesh.y, 0)[
+# md.geometry.base = InterpFromGridToMesh(x0, y0, bed, md.mesh.x, md.mesh.y, 0)[
 #   0
-#]  # DeepBedMap
+# ]  # DeepBedMap
 md.geometry.surface = InterpFromGridToMesh(x1, y1, usrf, md.mesh.x, md.mesh.y, 0)[0]
 
 print("   Constructing thickness")
@@ -53,7 +53,7 @@ md.geometry.thickness = md.geometry.surface - md.geometry.base
 di = md.materials.rho_ice / md.materials.rho_water
 
 # Get the node numbers of floating nodes
-pos = np.argwhere(md.mask.groundedice_levelset < 0)
+pos = np.argwhere(md.mask.ocean_levelset < 0)
 
 # apply a flotation criterion on the precedingly defined nodes and
 # redefine base and thickness accordingly
@@ -113,13 +113,25 @@ md.basalforcings.geothermalflux = InterpFromGridToMesh(
 
 # Friction and inversion set up
 print("   Construct basal friction parameters")
-md.friction.coefficient = friction_coefficient * np.ones(shape=md.mesh.numberofvertices)
-md.friction.p = np.ones(shape=md.mesh.numberofelements)
-md.friction.q = np.ones(shape=md.mesh.numberofelements)
+if hasattr(md.friction, "coefficient"):  # Budd type sliding law parameters
+    md.friction.coefficient = friction_coefficient * np.ones(
+        shape=md.mesh.numberofvertices
+    )
+    md.friction.p = 5 * np.ones(shape=md.mesh.numberofelements)
+    md.friction.q = 5 * np.ones(shape=md.mesh.numberofelements)
+elif hasattr(md.friction, "Cmax"):  # Schoof type sliding law parameters
+    md.friction.C = friction_coefficient * np.ones(shape=md.mesh.numberofvertices)
+    # Cmax is from Brondex 2019 https://doi.org/10.5194/tc-13-177-2019
+    md.friction.Cmax = 0.4 * np.ones(shape=md.mesh.numberofvertices)
+    md.friction.m = (1 / 3) * np.ones(shape=(md.mesh.numberofelements, 1))
+
 
 # no friction applied on floating ice
-pos = np.argwhere(md.mask.groundedice_levelset < 0)
-md.friction.coefficient[pos] = 0
+pos = np.argwhere(md.mask.ocean_levelset < 0)
+if hasattr(md.friction, "coefficient"):  # Budd/Weertman friction
+    md.friction.coefficient[pos] = 0
+elif hasattr(md.friction, "Cmax"):  # Schoof friction
+    md.friction.C[pos] = 0
 md.groundingline.migration = "SubelementMigration"
 
 md.inversion = m1qn3inversion()
