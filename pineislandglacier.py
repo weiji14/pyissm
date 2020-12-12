@@ -130,7 +130,7 @@ for bedname in ("DeepBedMap", "BedMachine"):
 
     # DeepBedMap v1.1 https://doi.org/10.5281/zenodo.4054246
     if bedname == "DeepBedMap":
-        with xr.open_dataset("Data/deepbedmap3_big_int16.nc") as ncdata0:
+        with xr.open_dataset("Data/deepbedmap_dem.nc") as ncdata0:
             x = ncdata0.x.data
             y = ncdata0.y.data
             bed = ncdata0.z.data.astype(np.float64)
@@ -172,11 +172,11 @@ for bedname in ("DeepBedMap", "BedMachine"):
 
     ## Control general
     md.inversion.iscontrol = 1
-    # # M1QN3 optimizer parameters
+    # M1QN3 optimizer parameters
     md.inversion.maxsteps = 30  # maximum number of iterations (gradient computation)
     md.inversion.maxiter = 40  # maximum number of Function evaluation
     md.inversion.dxmin = 0.1  #  convergence criterion: two points less than dxmin from each other (sup-norm) are considered identical
-    md.inversion.gttol = 1.0e-4  #     gradient relative convergence criterion 2
+    md.inversion.gttol = 1.0e-4  # gradient relative convergence criterion 2
     md.verbose = verbose("control", True)
     # Toolkit for Advanced Optimization (TAO) parameters TODO?
 

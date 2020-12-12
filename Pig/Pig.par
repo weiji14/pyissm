@@ -1,5 +1,5 @@
 % Parameters to change/Try
-friction_coefficient = 10; % default [10]
+friction_coefficient = 100; % default [10]
 Temp_change          =  0;  % default [0 K]
 
 %Name and Coordinate system
@@ -19,19 +19,19 @@ md.mesh.epsg=3031;
 
 %NetCdf Loading
 disp('   Loading DeepBedMap, BedMachine and ALBMAP data from NetCDF');
-ncdata0='../Data/deepbedmap3_big_int16.nc';
-ncdata1='../Data/BedMachineAntarctica_2019-11-05_v01.nc';
-ncdata2='../Data/ALBMAPv1.nc';
+ncdata0='Data/deepbedmap_dem.nc';
+ncdata1='Data/BedMachineAntarctica_2020-07-15_v02.nc';
+ncdata2='Data/ALBMAPv1.nc';
 %ncdata3='../Data/Antarctica_5km_withshelves_v0.75.nc';
 
-x0    = single(ncread(ncdata0,'x'));
-y0    = single(ncread(ncdata0,'y'));
-bed   = ncread(ncdata0,'z')';
+% x0    = single(ncread(ncdata0,'x'));
+% y0    = single(ncread(ncdata0,'y'));
+% bed   = ncread(ncdata0,'z')';
 
 x1    = single(ncread(ncdata1,'x'));
 y1    = flipud(single(ncread(ncdata1,'y')));
 usrf  = flipud(ncread(ncdata1,'surface')');
-topg  = flipud(ncread(ncdata1,'bed')');
+% topg  = flipud(ncread(ncdata1,'bed')');
 
 x2    = ncread(ncdata2,'x1');
 y2    = ncread(ncdata2,'y1');
@@ -42,7 +42,7 @@ gflux = ncread(ncdata2,'ghffm')';
 %Geometry
 disp('   Interpolating surface and ice base');
 %md.geometry.base      = InterpFromGridToMesh(x1,y1,topg,md.mesh.x,md.mesh.y,0); %BedMachine
-md.geometry.base    = InterpFromGridToMesh(x0,y0,bed,md.mesh.x,md.mesh.y,0); %DeepBedMap
+%md.geometry.base    = InterpFromGridToMesh(x0,y0,bed,md.mesh.x,md.mesh.y,0); %DeepBedMap
 md.geometry.surface = InterpFromGridToMesh(x1,y1,usrf,md.mesh.x,md.mesh.y,0);
 clear bed usrf topg;
 
@@ -53,7 +53,7 @@ md.geometry.thickness=md.geometry.surface-md.geometry.base;
 di=md.materials.rho_ice/md.materials.rho_water;
 
 %Get the node numbers of floating nodes
-pos=find(md.mask.groundedice_levelset<0);
+pos=find(md.mask.ocean_levelset<0);
 
 %apply a flotation criterion on the precedingly defined nodes and
 %redefine base and thickness accordingly
@@ -74,8 +74,8 @@ md.initialization.temperature=InterpFromGridToMesh(x2,y2,temp,md.mesh.x,md.mesh.
 clear temp;
 
 disp('   Loading velocities data from NetCDF');
-%nsidc_vel='../Data/Antarctica_ice_velocity.nc';
-nsidc_vel='../Data/antarctic_ice_vel_phase_map_v01.nc';
+%nsidc_vel='Data/Antarctica_ice_velocity.nc';
+nsidc_vel='Data/antarctic_ice_vel_phase_map_v01.nc';
 % xmin    = ncreadatt(nsidc_vel,'/','xmin');
 % ymax    = ncreadatt(nsidc_vel,'/','ymax');
 % spacing = ncreadatt(nsidc_vel,'/','spacing');
@@ -125,13 +125,21 @@ clear gflux;
 
 %Friction and inversion set up
 disp('   Construct basal friction parameters');
-md.friction.coefficient=friction_coefficient*ones(md.mesh.numberofvertices,1);
-md.friction.p=ones(md.mesh.numberofelements,1);
-md.friction.q=ones(md.mesh.numberofelements,1);
+% % Budd-type sliding law parameters
+% md.friction.coefficient=friction_coefficient*ones(md.mesh.numberofvertices,1);
+% md.friction.p=ones(md.mesh.numberofelements,1);
+% md.friction.q=ones(md.mesh.numberofelements,1);
+
+% Schoof-type sliding law parameters
+md.friction.C=friction_coefficient*ones(md.mesh.numberofvertices,1);
+% Cmax is from Brondex 2019 https://doi.org/10.5194/tc-13-177-2019
+md.friction.Cmax=0.4*ones(md.mesh.numberofvertices,1);
+md.friction.m=(1.0/3.0)*ones(md.mesh.numberofelements,1);
 
 %no friction applied on floating ice
-pos=find(md.mask.groundedice_levelset<0);
-md.friction.coefficient(pos)=0;
+pos=find(md.mask.ocean_levelset<0);
+% md.friction.coefficient(pos)=0; % Budd/Weertman friction
+md.friction.C(pos)=0; % Schoof friction
 md.groundingline.migration='SubelementMigration';
 
 md.inversion=m1qn3inversion();

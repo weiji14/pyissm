@@ -18,7 +18,7 @@ md.mesh.epsg = 3031
 # NetCdf Loading
 print("   Loading DeepBedMap, BedMachine and ALBMAP data from NetCDF")
 
-# with xr.open_dataset("Data/deepbedmap3_big_int16.nc") as ncdata0:
+# with xr.open_dataset("Data/deepbedmap_dem.nc") as ncdata0:
 #    x0 = ncdata0.x.data
 #    y0 = ncdata0.y.data
 #    bed = ncdata0.z.data.astype(np.float64)

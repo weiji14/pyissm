@@ -88,11 +88,11 @@ if any(steps==2)  %Masks #2
 	clear mask;
 
 	%fill in the md.mask structure
-	md.mask.groundedice_levelset=groundedice; %ice is grounded for mask equal one
+	md.mask.ocean_levelset=groundedice; %ice is grounded for mask equal one
 	md.mask.ice_levelset=-1*ones(md.mesh.numberofvertices,1);%ice is present when negative
 
 	%ploting
-	plotmodel(md,'data',md.mask.groundedice_levelset,'title','grounded/floating','data',md.mask.ice_levelset,'title','ice/no-ice')
+	plotmodel(md,'data',md.mask.ocean_levelset,'title','grounded/floating','data',md.mask.ice_levelset,'title','ice/no-ice')
 
 	% Save model
 	save ./Models/PIG_SetMask md;
