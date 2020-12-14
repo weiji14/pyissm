@@ -117,7 +117,7 @@ See also official instructions at https://issm.jpl.nasa.gov/documentation/addpat
 - [x] Use newer dataset inputs (e.g. BedMachine, ALBMAPv1, MEaSUREs Phase Map of Antarctic Ice Velocity)
 - [x] Go from Python 2.7 to Python 3
 - [x] Get reproducible [binder](https://mybinder.readthedocs.io) build to work (using Dockerfile)
-- [ ] Jupyter notebooks, [PyGMT](https://pygmt.org) plots, and so on!
+- [x] [PyGMT](https://pygmt.org) plots!
 
 ## Notes
 
