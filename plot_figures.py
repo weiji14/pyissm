@@ -74,7 +74,7 @@ def triangulate(data, **kwargs):
         if kind == "file":
             file_context = dummy_context(data)
         elif kind == "matrix":
-            file_context = lib.virtualfile_from_matrix(data.values)
+            file_context = lib.virtualfile_from_matrix(data.to_numpy())
         elif kind == "vectors":
             file_context = lib.virtualfile_from_vectors(x, y, z)
 
@@ -83,58 +83,134 @@ def triangulate(data, **kwargs):
             lib.call_module(module="triangulate", args=arg_str)
 
 
-triangulate(data=df, R=region, I=250, G=f"Models/{bedname.lower()}_{z_attr.varname}.nc")
+triangulate(
+    data=df.astype(np.float32),
+    R=region,
+    I=250,
+    G=f"Models/{bedname.lower()}_{z_attr.varname}.nc",
+)
+
+# %%
+# DeepBedMap z_grid SUBtracted by BedMachine z_grid
+with pygmt.clib.Session() as session:
+    args = (
+        f"Models/deepbedmap_{z_attr.varname}.nc "
+        f"Models/bedmachine_{z_attr.varname}.nc "
+        f"SUB = Models/diff_{z_attr.varname}.nc "
+    )
+    session.call_module(module="grdmath", args=args)
 
 # %%
 # Gridded plots, and transect plot of slipperiness/velocity/rheologyB
-grid = xr.open_dataarray(f"Models/{bedname.lower()}_{z_attr.varname}.nc")
-
 pointXY = collections.namedtuple(typename="pointXY", field_names="x y")
 pointA = pointXY(x=-1590_000, y=-99_000)
 pointB = pointXY(x=-1580_000, y=-255_000)
 points = pd.DataFrame(
-    data=np.linspace(start=pointA, stop=pointB, num=50), columns=["x", "y"]
+    data=np.linspace(start=pointA, stop=pointB, num=250), columns=["x", "y"]
 )
-transect = pygmt.grdtrack(points=points, grid=grid, newcolname=z_attr.varname)
 
+# %%
 fig = pygmt.Figure()
-# Plot 2D grid and transect line on map
+# Same colormap for both grids
+grids = [
+    f"Models/{bedname.lower()}_{z_attr.varname}.nc"
+    for bedname in ("DeepBedMap", "BedMachine")
+]
+pygmt.grdinfo(grid=grids[1], T=10)[2:-1]
 pygmt.makecpt(
     cmap="hawaii",
-    series=[zmin, zmax, (zmax - zmin) / 10],
+    series=pygmt.grdinfo(grid=" ".join(grids), T=10)[2:-1],
     reverse=True,
     continuous=True,
 )
-fig.grdimage(grid=grid, cmap=True, frame=["af", "WSne"], projection="X8c/12c")
-fig.text(
-    position="TR",
-    text=rf"@!\257{z_attr.symbol}={grid.mean().item():.4e}",
-    justify="TR",
-    offset="-0.2c/-0.2c",
-)
-fig.plot(x=transect.x, y=transect.y, color=transect[z_attr.varname], pen="1p")
-fig.text(x=pointA.x, y=pointA.y, text="A", justify="TR")
-fig.text(x=pointB.x, y=pointB.y, text="B", justify="BL")
+with pygmt.clib.Session() as session:
+
+    subplot = lambda args: session.call_module(module="subplot", args=args)
+    # Begin subplot
+    subplot(args="begin 2x3 -BWSne -Bxaf -Byaf -Fs10c/4c,14c -M0c/0.5c -SRl")
+
+    # Plot transect line graph
+    subplot(args=f"set 0,0")
+    transectproj = "X32c/4c"
+    _xyz = pd.concat(
+        pygmt.grdtrack(
+            points=points,
+            grid=grid,
+            newcolname=z_attr.varname,
+        )
+        for grid in grids
+    )
+    fig.basemap(
+        region=pygmt.info(
+            table=_xyz[["x", z_attr.varname]], per_column=True, spacing=10
+        ),
+        projection=transectproj,
+        frame=[
+            "af",
+            f'WSne+t"{z_attr.varname.title().replace("_", " ")} ({z_attr.symbol}) at Pine Island Glacier"',
+        ],
+    )
+    for bedname in ("DeepBedMap", "BedMachine"):
+        grid = f"Models/{bedname.lower()}_{z_attr.varname}.nc"
+        transect = pygmt.grdtrack(points=points, grid=grid, newcolname=z_attr.varname)
+        fig.plot(
+            x=transect.x.values,
+            y=transect[z_attr.varname].values,
+            projection=transectproj,
+            style="c0.1c",
+            color="purple" if bedname == "DeepBedMap" else "green",
+            label=bedname,
+        )
+    fig.legend(position="jMR+jMR+o0.2c", S=2, projection=transectproj)
+    fig.text(position="TL", text="A", offset="j0.1c", projection=transectproj)
+    fig.text(position="TR", text="B", offset="j0.1c", projection=transectproj)
+
+    # Plot 2D grid and transect line on map
+    for column, bedname in enumerate(iterable=("DeepBedMap", "BedMachine", "diff")):
+        grid = f"Models/{bedname.lower()}_{z_attr.varname}.nc"
+        xrgrid = xr.open_dataarray(grid)
+
+        mean_zval = xrgrid.mean().item()
+        mean_zval = f"{mean_zval:.4f}" if abs(mean_zval) < 1000 else f"{mean_zval:.4e}"
+        title = rf"{bedname}, @!\257{z_attr.symbol}={mean_zval}"
+        subplot(args=f"set 1,{column}")  # -A"{title}"
+
+        if bedname == "diff":
+            pygmt.makecpt(
+                cmap="vik+h0",
+                series=pygmt.grdinfo(grid=grid, T="+a0.5+s")[2:-1],
+            )
+        fig.grdimage(
+            grid=grid,
+            region=pygmt.grdinfo(grid, I="r")[2:-1],
+            cmap=True,
+            projection="X10c/14c",
+        )
+        if bedname == "diff":
+            fig.colorbar(position="JMR+o1.5c/0c+e", frame=["af", f'y+l"{z_attr.unit}"'])
+        with pygmt.config(FONT_TITLE="14p"):
+            fig.plot(
+                x=transect.x,
+                y=transect.y,
+                color=transect[z_attr.varname],
+                pen="1p",
+                frame=[f'lrbt+t"{title}"'],
+            )
+        fig.text(x=pointA.x, y=pointA.y, text="A", justify="TR")
+        fig.text(x=pointB.x, y=pointB.y, text="B", justify="BL")
+
+    # End subplot
+    subplot(args="end")
+
 fig.colorbar(
-    position="JRM",
+    position="JBC",
     S=True,
-    frame=["1000a" if z_attr.varname == "basal_drag" else "", f'y+l"{z_attr.unit}"'],
-    xshift="0.5c",
-)
-# Plot transect line graph
-fig.plot(
-    x=transect.x.values,
-    y=transect[z_attr.varname].values,
-    region=[
-        transect.x.min(),
-        transect.x.max(),
-        transect[z_attr.varname].min(),
-        transect[z_attr.varname].max(),
+    frame=[
+        # "1000af" if z_attr.varname == "basal_drag" else "",
+        "xaf",
+        f'y+l"{z_attr.unit}"',
     ],
-    projection="X8c/4c",
-    frame=["af", f'WSne+t"{bedname} {z_attr.varname}"'],
-    pen="2p",
-    Y="13c",
+    xshift="2c",
 )
-fig.savefig(fname=f"Models/{bedname.lower()}_{z_attr.varname}_transect.png")
+fig.savefig(fname=f"Models/inverted_bed_{z_attr.varname}.png")
 fig.show()
