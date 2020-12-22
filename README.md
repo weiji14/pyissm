@@ -25,9 +25,9 @@ Activate the conda environment first.
     conda activate pyissm
 
 Then clone the ISSM svn trunk repository.
-You will need to have [git-svn](https://git-scm.com/docs/git-svn) installed.
+You will need to have [subversion](https://subversion.apache.org/) installed.
 
-    echo 'anon' | git svn clone --username anon -r 25855 https://issm.ess.uci.edu/svn/issm/issm/trunk
+    echo 'anon' | svn checkout --username anon --password-from-stdin -r 25855 https://issm.ess.uci.edu/svn/issm/issm/trunk
 
 After that, you will need to compile some of the dependencies shipped with ISSM.
 
